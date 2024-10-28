@@ -28,7 +28,7 @@ To install and run the project, follow these steps:
 3. Run the application:
    python app.py
 
-##Technologies Used
+## Technologies Used
 Programming Languages: Python, HTML, CSS, JavaScript
 Framework: Flask
 Database: SQLite
@@ -37,7 +37,7 @@ werkzeug.security for password hashing.
 Database:
 The project includes an SQLite database that supports all CRUD operations, allowing efficient management of user data, bus routes, and bookings.
 
-##Authors
+## Authors
 This project was developed by:
 
 Mayuresh Sawant
