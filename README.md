@@ -40,7 +40,7 @@ The project includes an SQLite database that supports all CRUD operations, allow
 ## Authors
 This project was developed by:
 
-Mayuresh Sawant
-Hasnain Khan
-Ghanshyam Kumavat
+Mayuresh Sawant<br>
+Hasnain Khan<br>
+Ghanshyam Kumavat<br>
 As college students, we collaborated to create this project as part of our coursework. We hope this application makes the bus booking process more efficient and user-friendly.
