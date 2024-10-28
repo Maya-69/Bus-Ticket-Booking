@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
     <style>
+        /* Your CSS styling */
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            overflow: hidden;
+        }
         .navbar {
             background: rgba(0, 0, 0, 0.5);
             position: fixed;
@@ -19,213 +30,193 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .navbar .company {
             display: flex;
             align-items: center;
         }
-
         .navbar img {
             height: 40px;
             margin-right: 10px;
         }
-
         .navbar a {
             color: #fff;
             margin: 0 15px;
             text-decoration: none;
         }
-
         .navbar a:hover {
             color: #5cb85c;
         }
-
-        .hidden {
-            top: -60px;
-        }
-
         .container {
-            margin-top: 60px;
-            text-align: center;
-            color: #fff;
-            width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        h2 {
-            margin-top: 20px;
-        }
-
-        table {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-y: auto;
+            flex-grow: 1;
         }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-            border-right: 1px solid rgba(255, 255, 255, 0.5);
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
         }
-
-        td:last-child, th:last-child {
-            border-right: none;
+        #seats-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            width: 100%;
         }
-
-        th {
-            background: rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
-
-        .logo {
-            width: 45px;
-            height: 45px;
-            border-radius: 90%;
-            object-fit: cover;
-        }
-
-        .book-btn {
-            background-color: #5cb85c;
-            color: white;
-            padding: 6px 10px;
-            border: none;
+        .seat {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #333;
             border-radius: 5px;
             cursor: pointer;
-            text-decoration: none;
-            margin-left: 10px;
-            white-space: nowrap;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
         }
-
-        .book-btn:hover {
+        .available {
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .available:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .booked {
+            background-color: #A9A9A9;
+            color: white;
+            cursor: not-allowed;
+        }
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #5cb85c;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            width: 250px;
+        }
+        .back-button:hover {
             background-color: #4cae4c;
         }
 
-        /* Modal styling */
-        #seatModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-        }
-
-        #seatModal .modal-content {
-            background: #fff;
-            padding: 20px;
-            max-width: 500px;
-            margin: 10% auto;
-            position: relative;
-        }
-
-        .available {
-            background-color: #5cb85c;
-            color: white;
-            margin: 5px;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .unavailable {
-            background-color: #ddd;
-            color: #aaa;
-            margin: 5px;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: not-allowed;
+        .logo {
+            width: 45px; /* Adjust size as needed */
+            height: 45px; /* Adjust size as needed */
+            border-radius: 90%; /* This makes the image round */
+            object-fit: cover; /* Ensures the image covers the area without distortion */
         }
     </style>
 </head>
 <body>
-    <div class="user-home">
-        <nav class="navbar" id="navbar">
-            <div class="company">
-                <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company Logo" class="logo">
-                <span>The Getaway Bus</span>
-            </div>
-            <div>
-                <a href="/book-bus">Book Ticket</a>
-                <a href="/my-bookings">My Bookings</a>
-                <a href="/profile">Profile</a>
-                <a href="/logout">Logout</a>
-            </div>
-        </nav>
-        
-        <div class="container">
-            <h2>Available Seats for Bus ID: {{ bus_id }}</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Seat Number</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for seat in seats %}
-                    <tr>
-                        <td>{{ seat.number }}</td>
-                        <td>{{ seat.available ? 'Available' : 'Unavailable' }}</td>
-                        <td>
-                            {% if seat.available %}
-                                <button onclick="showSeatModal({{ seat.number }})" class="book-btn">Book</button>
-                            {% else %}
-                                <button class="unavailable">Unavailable</button>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <nav class="navbar" id="navbar">
+        <div class="company">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company Logo" class="logo">
+            <span>The Getaway Bus</span>
         </div>
-    </div>
+        <div>
+            <a href="/book-bus">Book Ticket</a>
+            <a href="/my-bookings">My Bookings</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
 
-    <!-- Seat Selection Modal -->
-    <div id="seatModal">
-        <div class="modal-content">
-            <h3>Select Your Seat</h3>
-            <div id="seatContainer"></div>
-            <button onclick="closeSeatModal()">Close</button>
-            <button onclick="confirmBooking()">Confirm Booking</button>
+    <div class="container">
+        <h2>Available Seats for Bus: {{ route_name }}</h2>
+        <div id="seats-container">
+            {% for seat in seats %}
+                <div class="seat {{ 'available' if seat.available else 'booked' }}" 
+                     data-seat-number="{{ seat.number }}">
+                    {{ seat.number }}
+                </div>
+            {% endfor %}
         </div>
+        <a href="{{ url_for('book_bus') }}" class="back-button">Back to Booking</a>
     </div>
 
     <script>
-        let selectedSeat = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAvailableSeats();
 
-        function showSeatModal(seatNumber) {
-            selectedSeat = seatNumber;
-            alert(`Seat ${seatNumber} selected`);
-        }
+            const seats = document.querySelectorAll('.seat');
+            seats.forEach(seat => {
+                seat.addEventListener('click', () => {
+                    const seatNumber = seat.getAttribute('data-seat-number');
+                    const routeId = '{{ route_id }}';
 
-        function closeSeatModal() {
-            document.getElementById('seatModal').style.display = 'none';
-        }
+                    // Confirm booking
+                    if (confirm(`Are you sure you want to book seat ${seatNumber}?`)) {
+                        bookSeat(seatNumber, routeId);
+                    }
+                });
+            });
+        });
 
-        function confirmBooking() {
-            if (!selectedSeat) {
-                alert('Please select a seat.');
-                return;
-            }
-
-            fetch(`/book-seat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ seat_number: selectedSeat, bus_id: {{ bus_id }} })
+        function loadAvailableSeats() {
+            // Corrected URL to include route_id parameter
+            const routeId = '{{ route_id }}';
+            fetch(`/book/available-seats/${routeId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update seat availability based on response data
+                data.seats.forEach(seat => {
+                    const seatElement = document.querySelector(`.seat[data-seat-number="${seat.number}"]`);
+                    if (seatElement) {
+                        seatElement.classList.remove('available', 'booked'); // Clear previous classes
+                        if (seat.available) {
+                            seatElement.classList.add('available');
+                        } else {
+                            seatElement.classList.add('booked');
+                        }
+                    }
+                });
+            })
+        }
+
+        function bookSeat(seatNumber, routeId) {
+            fetch('/book-seat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ seat_number: seatNumber, route_id: routeId })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 alert(data.message);
-                closeSeatModal();
-                location.reload();
+                loadAvailableSeats(); // Refresh the seat availability after booking
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error booking the seat:', error);
+                alert('There was an error booking the seat. Please try again.');    
+            });
         }
     </script>
 </body>

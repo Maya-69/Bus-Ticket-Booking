@@ -1,19 +1,22 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = 'your_secret_key'  # Secret key for session management
 
-# Database setup
+# Database setup function
 def init_sqlite_db():
+    # Create a SQLite database and tables if they do not exist
     with sqlite3.connect('bus_ticket_booking.db') as conn:
         cursor = conn.cursor()
+        # Users table to store usernames and hashed passwords
         cursor.execute('''CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
             password TEXT NOT NULL
         )''')
+        # Routes table to store bus route details
         cursor.execute('''CREATE TABLE IF NOT EXISTS routes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             route_name TEXT NOT NULL,
@@ -21,6 +24,7 @@ def init_sqlite_db():
             departure_time TEXT NOT NULL,
             price REAL NOT NULL
         )''')
+        # Seats table to store seat availability for routes
         cursor.execute('''CREATE TABLE IF NOT EXISTS seats (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             route_id INTEGER NOT NULL,
@@ -30,11 +34,12 @@ def init_sqlite_db():
         )''')
     conn.close()
 
+# Initialize the database
 init_sqlite_db()
 
 @app.route('/')
 def home():
-    return redirect(url_for('login'))  # Redirect to login page at server start
+    return redirect(url_for('login'))
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -66,7 +71,6 @@ def login():
             session['user'] = 'admin'
             return redirect(url_for('admin_dashboard'))
 
-        # Normal user login check
         with sqlite3.connect('bus_ticket_booking.db') as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
@@ -139,17 +143,24 @@ def add_route():
         route_name = request.form['route_name']
         departure_time = request.form['departure_time']
         price = request.form['price']
-        
+        num_seats = int(request.form['num_seats'])
+
         with sqlite3.connect('bus_ticket_booking.db') as conn:
             cursor = conn.cursor()
             cursor.execute("INSERT INTO routes (route_name, bus_name, departure_time, price) VALUES (?, ?, ?, ?)",
                            (route_name, bus_name, departure_time, price))
+            route_id = cursor.lastrowid
+            
+            for seat_num in range(1, num_seats + 1):
+                seat_number = f'Seat-{seat_num}'
+                cursor.execute("INSERT INTO seats (route_id, seat_number) VALUES (?, ?)", (route_id, seat_number))
+            
             conn.commit()
         
-        flash('Bus route added successfully!', 'success')
+        flash('Bus route and seats added successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
 
-    return render_template('add-route.html')  # Render the form for adding a route
+    return render_template('add-route.html')
 
 @app.route('/logout')
 def logout():
@@ -165,35 +176,84 @@ def book_bus():
         routes = cursor.fetchall()
     return render_template('book-bus.html', routes=routes)
 
-@app.route('/book/<int:route_id>', methods=['GET', 'POST'])
-def book(route_id):
+@app.route('/book/available-seats/<int:route_id>', methods=['GET'])
+def available_seats(route_id):
     if 'user' not in session:
         flash('You must log in first!', 'error')
         return redirect(url_for('login'))
-    
+
     with sqlite3.connect('bus_ticket_booking.db') as conn:
         cursor = conn.cursor()
-
-        if request.method == 'POST':
-            selected_seat = request.form['selected_seat']
-
-            # Mark the seat as booked
-            cursor.execute("UPDATE seats SET is_booked = 1 WHERE route_id = ? AND seat_number = ?",
-                           (route_id, selected_seat))
-            conn.commit()
-
-            flash(f'Booking successful for seat {selected_seat} on route ID: {route_id}', 'success')
-            return redirect(url_for('book_bus'))
-
-        # Fetch available seats for the selected route
-        cursor.execute("SELECT seat_number FROM seats WHERE route_id = ? AND is_booked = 0", (route_id,))
+        cursor.execute("SELECT seat_number, is_booked FROM seats WHERE route_id = ?", (route_id,))
         available_seats = cursor.fetchall()
+        seats = [{'number': seat[0], 'available': not seat[1]} for seat in available_seats]
 
-    return render_template('available-seats.html', route_id=route_id, available_seats=available_seats)
+    return render_template('available-seats.html', route_id=route_id, seats=seats)
 
-@app.errorhandler(404)
-def not_found(e):
-    return "This route does not exist", 404
+@app.route('/book-seat', methods=['POST'])
+def book_seat():
+    if 'user' not in session:
+        flash('You must log in first!', 'error')
+        return redirect(url_for('login'))
+
+    data = request.get_json()
+
+    if not data or 'seat_number' not in data or 'route_id' not in data:
+        return jsonify({'message': 'Invalid data received'}), 400
+
+    seat_number = data['seat_number']
+    route_id = data['route_id']
+
+    with sqlite3.connect('bus_ticket_booking.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT is_booked FROM seats WHERE route_id = ? AND seat_number = ?", (route_id, seat_number))
+        seat_status = cursor.fetchone()
+
+        if seat_status and seat_status[0] == 0:
+            cursor.execute("UPDATE seats SET is_booked = 1 WHERE route_id = ? AND seat_number = ?", (route_id, seat_number))
+            conn.commit()
+            return jsonify({'message': f'Booking successful for seat {seat_number}'}), 200
+        else:
+            return jsonify({'message': f'Seat {seat_number} is already booked.'}), 410
+
+@app.route('/my-bookings')
+def my_bookings():
+    if 'user' not in session:
+        flash('You must log in first!', 'error')
+        return redirect(url_for('login'))
+
+    username = session['user']
+
+    with sqlite3.connect('bus_ticket_booking.db') as conn:
+        cursor = conn.cursor()
+        
+        # Retrieve bookings for the logged-in user
+        cursor.execute('''SELECT routes.route_name, seats.seat_number, routes.departure_time, routes.price, seats.id AS seat_id 
+                          FROM seats 
+                          JOIN routes ON seats.route_id = routes.id 
+                          WHERE seats.is_booked = 1
+                          ''')
+        bookings = cursor.fetchall()
+
+    # Check if no bookings were found
+    if not bookings:
+        flash('No bookings found.', 'info')
+    
+    return render_template('my-bookings.html', bookings=bookings)
+
+@app.route('/delete-booking/<int:seat_id>', methods=['POST'])
+def delete_booking(seat_id):
+    if 'user' not in session:
+        flash('You must log in first!', 'error')
+        return redirect(url_for('login'))
+
+    with sqlite3.connect('bus_ticket_booking.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE seats SET is_booked = 0 WHERE id = ?", (seat_id,))
+        conn.commit()
+        
+    flash('Booking deleted successfully!', 'success')
+    return redirect(url_for('my_bookings'))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -94,7 +94,7 @@
         <nav class="navbar" id="navbar">
             <div class="company">
                 <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company Logo" class="logo"> <!-- Add your logo here -->
-                <span >The Getaway Bus</span> <!-- Replace with your company name -->
+                <span>The Getaway Bus</span> <!-- Replace with your company name -->
             </div>
             <div>
                 <a href="/admin">Home</a>
@@ -113,6 +113,7 @@
                     <input type="text" name="route_name" placeholder="Route Name" required>
                     <input type="time" name="departure_time" required>
                     <input type="number" name="price" placeholder="Price" required step="0.01">
+                    <input type="number" name="num_seats" placeholder="Number of Seats" required> <!-- Added num_seats input -->
                     <input type="submit" value="Add Route">
                 </form>
             </div>

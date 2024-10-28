@@ -9,99 +9,118 @@
     <style>
         /* Additional styles for the navbar */
         .navbar {
-            background: rgba(0, 0, 0, 0.5); /* Reduced opacity */
-            position: fixed; /* Fix it to the top */
-            width: 100%; /* Full width */
-            top: 0; /* Stick to the top */
-            left: 0; /* Align to the left */
-            padding: 10px; /* Padding for the navbar */
-            z-index: 1000; /* Above other content */
-            display: flex; /* Flexbox for layout */
-            justify-content: space-between; /* Space between items */
-            align-items: center; /* Center items vertically */
+            background: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            padding: 10px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .navbar .company {
-            display: flex; /* Flexbox for logo and name */
-            align-items: center; /* Center logo and name */
+            display: flex;
+            align-items: center;
         }
 
         .navbar img {
-            height: 40px; /* Adjust logo height */
-            margin-right: 10px; /* Space between logo and name */
+            height: 40px;
+            margin-right: 10px;
         }
 
         .navbar a {
-            color: #fff; /* Text color */
-            margin: 0 15px; /* Margin between links */
-            text-decoration: none; /* Remove underline */
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
         }
 
         .navbar a:hover {
-            color: #5cb85c; /* Change color on hover */
+            color: #5cb85c;
         }
 
         .hidden {
-            top: -60px; /* Hide the navbar */
+            top: -60px;
         }
 
         .container {
-            margin-top: 60px; /* Space for the navbar */
-            text-align: center; /* Center text in the container */
-            color: #fff; /* White text color */
-            width: 80%; /* Increased width */
-            margin-left: auto; /* Center container */
-            margin-right: auto; /* Center container */
+            margin-top: 60px;
+            text-align: center;
+            color: #fff;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         h2 {
-            margin-top: 20px; /* Space above the title */
+            margin-top: 20px;
         }
 
         table {
-            width: 100%; /* Full width for the table */
-            border-collapse: collapse; /* Remove gaps between cells */
-            margin-top: 20px; /* Space between title and table */
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
 
         th, td {
-            padding: 15px; /* Padding inside cells */
-            text-align: left; /* Align text to the left */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.5); /* Light border for separation */
-            border-right: 1px solid rgba(255, 255, 255, 0.5); /* Vertical line */
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            border-right: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        /* Remove right border for the last column */
         td:last-child, th:last-child {
             border-right: none;
         }
 
         th {
-            background: rgba(255, 255, 255, 0.2); /* Header background */
-            color: #fff; /* Header text color */
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
         }
 
         .logo {
-            width: 45px; /* Adjust size as needed */
-            height: 45px; /* Adjust size as needed */
-            border-radius: 90%; /* This makes the image round */
-            object-fit: cover; /* Ensures the image covers the area without distortion */
+            width: 45px;
+            height: 45px;
+            border-radius: 90%;
+            object-fit: cover;
         }
 
         .book-btn {
-            background-color: #5cb85c; /* Button color */
-            color: white; /* Text color */
-            padding: 6px 10px; /* Slightly smaller button padding */
-            border: none; /* Remove border */
-            border-radius: 5px; /* Rounded corners */
-            cursor: pointer; /* Cursor change on hover */
-            text-decoration: none; /* Remove underline */
-            margin-left: 10px; /* Space between price and button */
-            white-space: nowrap; /* Prevent text wrapping in button */
+            background-color: #5cb85c;
+            color: white;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: 10px;
+            white-space: nowrap;
         }
 
         .book-btn:hover {
-            background-color: #4cae4c; /* Darker color on hover */
+            background-color: #4cae4c;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .navbar a {
+                margin: 5px 0;
+            }
+
+            .container {
+                width: 95%;
+            }
+
+            table {
+                font-size: 14px; /* Smaller font for mobile */
+            }
         }
     </style>
 </head>
@@ -109,8 +128,8 @@
     <div class="user-home">
         <nav class="navbar" id="navbar">
             <div class="company">
-                <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company Logo" class="logo"> <!-- Add your logo here -->
-                <span>The Getaway Bus</span> <!-- Replace with your company name -->    
+                <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company Logo" class="logo">
+                <span>The Getaway Bus</span>
             </div>
             <div>
                 <a href="/book-bus">Book Ticket</a>
@@ -139,7 +158,7 @@
                         <td>{{ route[2] }}</td>
                         <td>{{ route[3] }}</td>
                         <td>${{ route[4] }}</td>
-                        <td><a href="/book/available-seats{{ route[0] }}" class="book-btn">Book</a></td>
+                        <td><a href="/book/available-seats/{{ route[0] }}" class="book-btn">Book</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -156,10 +175,8 @@
             let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
             if (scrollTop > lastScrollTop) {
-                // Scrolling down
                 navbar.classList.add('hidden');
             } else {
-                // Scrolling up
                 navbar.classList.remove('hidden');
             }
             lastScrollTop = scrollTop;

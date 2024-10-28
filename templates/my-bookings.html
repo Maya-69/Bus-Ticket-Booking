@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            padding: 10px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .company {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .navbar a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            color: #5cb85c;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        table {
+            width: 100%;
+            max-width: 800px;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 2px solid #333;
+            padding: 10px;
+            text-align: left;
+            color: white;
+        }
+
+        th {
+            background-color: #A9D1FF;
+            color: #333;
+        }
+
+        .cancel-button {
+            background-color: #ff4d4d;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .cancel-button:hover {
+            background-color: #e60000;
+        }
+
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #5cb85c;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            width: 250px;
+        }
+
+        .back-button:hover {
+            background-color: #4cae4c;
+        }
+
+        .logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 90%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar" id="navbar">
+        <div class="company">
+            <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Company Logo" class="logo">
+            <span>The Getaway Bus</span>
+        </div>
+        <div>
+            <a href="/book-bus">Book Ticket</a>
+            <a href="/my-bookings">My Bookings</a>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>My Bookings</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Bus Number</th>
+                    <th>Seat Number</th>
+                    <th>Departure Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                    <tr>
+                        <td>{{ booking.bus_number }}</td>
+                        <td>{{ booking.seat_number }}</td>
+                        <td>{{ booking.departure_time }}</td>
+                        <td>
+                            <button class="cancel-button" onclick="cancelBooking({{ booking.id }})">Cancel</button>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">No bookings found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('book_bus') }}" class="back-button">Back to Booking</a>
+    </div>
+
+    <script>
+        function cancelBooking(bookingId) {
+            if (confirm('Are you sure you want to cancel this booking?')) {
+                fetch(`/cancel-booking/${bookingId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // Refresh the page to update the bookings
+                })
+                .catch(error => {
+                    console.error('Error canceling the booking:', error);
+                    alert('There was an error canceling the booking. Please try again.');    
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
